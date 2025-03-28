@@ -1,0 +1,328 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum EventType {
+  WORKSHOP
+  WEBINAR
+  CONFERENCE
+  NETWORKING
+  OTHER
+}
+
+enum ProgramType {
+  TECHNICAL
+  LEADERSHIP
+  ENTREPRENEURSHIP
+  RESEARCH
+  OTHER
+}
+
+enum LectureStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id                      String                   @id @default(uuid())
+  email                   String                   @unique
+  password                String?
+  name                    String
+  role                    UserRole                 @default(STUDENT)
+  googleId                String?                  @unique
+  appleId                 String?                  @unique
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  ownedCourses            Course[]                 @relation("CourseOwner")
+  enrolledIn              Course[]                 @relation("CourseEnrollments")
+  enrollments             Enrollment[]
+  progress                Progress[]
+  communityPosts          CommunityPost[]
+  blogs                   Blog[]
+  comments                Comment[]
+  likes                   Like[]
+  views                   View[]
+  eventRegistrations      EventRegistration[]
+  lectureApplications     LectureApplication[]
+  certificateValidations  CertificateValidation[]
+  scholarshipApplications ScholarshipApplication[]
+}
+
+model Course {
+  id                     String                  @id @default(uuid())
+  title                  String
+  description            String
+  price                  Float
+  imageUrl               String?
+  ownerId                String
+  owner                  User                    @relation("CourseOwner", fields: [ownerId], references: [id])
+  students               User[]                  @relation("CourseEnrollments")
+  modules                Module[]
+  enrollments            Enrollment[]
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  certificateValidations CertificateValidation[]
+  LectureApplication     LectureApplication[]
+}
+
+model Module {
+  id        String   @id @default(uuid())
+  title     String
+  order     Int
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([courseId, order])
+}
+
+model Lesson {
+  id        String     @id @default(uuid())
+  title     String
+  content   String     @db.Text
+  videoUrl  String?
+  order     Int
+  moduleId  String
+  module    Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress  Progress[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([moduleId, order])
+}
+
+model Enrollment {
+  id             String    @id @default(uuid())
+  userId         String
+  courseId       String
+  enrollmentDate DateTime  @default(now())
+  completionDate DateTime?
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course         Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([userId, courseId])
+}
+
+model Progress {
+  id         String   @id @default(uuid())
+  userId     String
+  lessonId   String
+  completed  Boolean  @default(false)
+  lastViewed DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson     Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+}
+
+// Community Feature
+model CommunityPost {
+  id        String   @id @default(uuid())
+  userId    String
+  content   String   @db.Text
+  imageUrl  String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Blog Feature
+model Blog {
+  id        String    @id @default(uuid())
+  title     String
+  content   String    @db.Text
+  authorId  String
+  imageUrl  String?
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  likes     Like[]
+  views     View[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  blogId    String
+  userId    String
+  content   String   @db.Text
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  blogId    String
+  userId    String
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([blogId, userId])
+}
+
+model View {
+  id       String   @id @default(uuid())
+  blogId   String
+  userId   String
+  viewDate DateTime @default(now())
+  blog     Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([blogId, userId])
+}
+
+// Event Feature
+model Event {
+  id            String              @id @default(uuid())
+  title         String
+  description   String              @db.Text
+  eventDate     DateTime
+  location      String
+  eventType     EventType
+  imageUrl      String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  registrations EventRegistration[]
+}
+
+model EventRegistration {
+  id        String   @id @default(uuid())
+  eventId   String
+  userId    String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId])
+}
+
+// Newsletter Feature
+model NewsletterSubscription {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  subscribedAt DateTime @default(now())
+  active       Boolean  @default(true)
+}
+
+// Lecture Application Feature
+model LectureApplication {
+  id             String        @id @default(uuid())
+  title          String
+  description    String
+  objectives     String
+  targetAudience String
+  prerequisites  String?
+  proposedDate   DateTime
+  duration       Int
+  notes          String?
+  status         LectureStatus @default(PENDING)
+  feedback       String?
+
+  // Relations
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id])
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Government Program Feature
+model GovernmentProgram {
+  id          String      @id @default(uuid())
+  title       String
+  description String      @db.Text
+  programType ProgramType
+  startDate   DateTime
+  endDate     DateTime
+  imageUrl    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+// Independent Campus Program Feature
+model IndependentCampusProgram {
+  id          String      @id @default(uuid())
+  title       String
+  description String      @db.Text
+  programType ProgramType
+  startDate   DateTime
+  endDate     DateTime
+  imageUrl    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+// Certificate Validation Feature
+model CertificateValidation {
+  id              String   @id @default(uuid())
+  certificateCode String   @unique
+  userId          String
+  courseId        String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  validationDate  DateTime @default(now())
+  createdAt       DateTime @default(now())
+}
+
+// Scholarship Feature
+model Scholarship {
+  id           String                   @id @default(uuid())
+  title        String
+  description  String                   @db.Text
+  provider     String
+  deadline     DateTime
+  imageUrl     String?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  applications ScholarshipApplication[]
+}
+
+model ScholarshipApplication {
+  id            String            @id @default(uuid())
+  scholarshipId String
+  userId        String
+  motivation    String            @db.Text
+  status        ApplicationStatus @default(PENDING)
+  scholarship   Scholarship       @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appliedAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([scholarshipId, userId])
+}
