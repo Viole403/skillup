@@ -1,0 +1,28 @@
+{
+  "name": "skillup-platform",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "dotenv run -- turbo build",
+    "dev": "dotenv run -- turbo dev",
+    "lint": "dotenv run -- turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "dev:api": "dotenvx run -- turbo dev --filter=api",
+    "dev:web": "dotenvx run -- turbo dev --filter=web",
+    "dev:docs": "dotenvx run -- turbo dev --filter=docs"
+  },
+  "devDependencies": {
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/jest-config": "workspace:*",
+    "@workspace/tailwind-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "@dotenvx/dotenvx": "^1.39.0",
+    "prettier": "^3.5.1",
+    "turbo": "^2.4.2",
+    "typescript": "5.7.3"
+  },
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=20"
+  }
+}
