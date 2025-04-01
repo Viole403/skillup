@@ -3,11 +3,11 @@ import Image from "next/image";
 
 export const FAQ = () => {
   return (
-    <section className="container mx-auto px-4 py-20 border-t dark:border-gray-800">
+    <section className="container mx-auto px-4 py-20 border-t border-gray-200 dark:border-gray-800">
       <div className="text-center mb-12">
         <h6 className="text-primary font-medium mb-2">Frequently Asked Questions (FAQs)</h6>
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Find Answers to Your Questions</h2>
-        <p className="text-muted-foreground dark:text-gray-300 mt-4 max-w-2xl mx-auto">
+        <p className="text-gray-600 dark:text-gray-300 mt-4 max-w-2xl mx-auto">
           Welcome to our FAQs section! Here, we&apos;ve compiled answers to some of the most common questions our users ask.
         </p>
       </div>
@@ -28,13 +28,13 @@ export const FAQ = () => {
         {/* Right side FAQ content */}
         <div className="space-y-5">
           {faqs.map((faq, index) => (
-            <div key={index} className="collapse collapse-plus border border-base-300 bg-base-100 rounded-box shadow-sm">
+            <div key={index} className="collapse collapse-plus border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-box shadow-sm">
               <input type="radio" name="faq-accordion" className="peer" defaultChecked={index === 0} />
               <div className="collapse-title text-xl font-medium text-gray-900 dark:text-gray-100 flex items-center py-5">
                 {faq.question}
               </div>
               <div className="collapse-content">
-                <p className="text-muted-foreground dark:text-gray-300 pb-3">{faq.answer}</p>
+                <p className="text-gray-600 dark:text-gray-300 pb-3">{faq.answer}</p>
               </div>
             </div>
           ))}
